@@ -2,11 +2,15 @@
 
 import os
 import sys
+import json
 import argparse
 import requests
+from pathlib import Path
+from shutil import copyfile
 from bs4 import BeautifulSoup
 
 image_extensions = ['.jpg','.jpeg','.png','.gif']
+data_dir = str(Path.home()) + '/.cache/akari'
 
 def query_iqdb(filename):
     url = 'https://iqdb.org'
@@ -21,7 +25,7 @@ def parse_result(result):
         search_result = tables[1].findChildren("th")[0].get_text()
     except:
         print('Unexpected Error')
-        return ['undefined']
+        return ['server-error']
     tags = []
     if search_result == 'No relevant matches':
         print('No Match Found')
@@ -37,7 +41,7 @@ def parse_result(result):
             tags = tag_string.split(" ")
     return tags
 
-def scan_diretory(dirname):
+def scan_diretory(dirname, db):
     image_paths = []
     count = 1
     for root, d_names, f_names in os.walk(dirname):
@@ -50,10 +54,37 @@ def scan_diretory(dirname):
         filename = os.path.basename(os.path.normpath(image))
         print("Processing Image {} of {}: {}".format(count, num_of_images, filename))
         count = count + 1
-        result = query_iqdb(image)
-        tags = parse_result(result)
-        print(tags)
+        if image in db and db[image] != ['server-error']:
+            print('Already exits in DB. Skipping...')
+        else:
+            result = query_iqdb(image)
+            tags = parse_result(result)
+            db[image] = tags
+            with open(data_dir+'/db.json', 'w') as outfile:
+                json.dump(db, outfile)
+            print(tags)
         print("-----x--x-----")
+
+def loadDB():
+    db = {}
+    misplaced_files = []
+    db_location = data_dir + '/db.json'
+
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+    if os.path.isfile(db_location):
+        copyfile(db_location,db_location+'.backup')
+        with open(db_location) as json_db:
+            db = json.load(json_db)
+
+    for key in db:
+        if not os.path.isfile(key):
+            misplaced_files.append(key)
+    for file in misplaced_files:
+        db.pop(file, None)
+        print('{} misplaced'.format(file))
+
+    return db
 
 def handle_flags():
     parser = argparse.ArgumentParser()
@@ -76,9 +107,10 @@ def handle_flags():
 
 def main():
     dirname = handle_flags()
+    db = loadDB()
     if dirname == -1:
         print("GUI has not been implemented yet")
         sys.exit(2)
-    scan_diretory(dirname)
+    scan_diretory(dirname, db)
 
 main()
