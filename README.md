@@ -7,3 +7,5 @@ akari is a work in progress python program to manage anime artwork. currently it
 
 ## Usage
     python3 akari.py /path/to/directory
+
+[TODO](https://github.com/mananapr/akari/issues/1)
