@@ -9,6 +9,7 @@ akari is a work in progress python program to manage anime artwork. currently it
 ## Installation
 For user installation, simply run:
     pip3 install --user akari
+    
 Then add `$HOME/.local/bin` to your `$PATH`:
     echo PATH=\"\$PATH:\$HOME/.local/bin\" >> $HOME/.bashrc
     source $HOME/.bashrc
