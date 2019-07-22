@@ -1,4 +1,3 @@
-# akari
 <h3 align="center"><img src="https://i.imgur.com/Tyi3Bq5.png" width="200px"></h3>
 <p align="center">Tag your anime photos effortlessly</p>
 
