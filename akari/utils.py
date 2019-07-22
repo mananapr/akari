@@ -8,13 +8,20 @@ from shutil import copyfile
 from bs4 import BeautifulSoup
 
 image_extensions = ['.jpg','.jpeg','.png','.gif']
-data_dir = str(Path.home()) + '/.cache/akari'
+data_dir = str(Path.home()) + '/.config/akari'
 
 def query_iqdb(filename):
     url = 'https://iqdb.org'
     files = {'file': (filename, open(filename, 'rb'))}
     res = requests.post(url,files=files)
     return res
+
+def update_tags(tags, db):
+    for tag in tags:
+        if tag in db['akari-tags']:
+            db['akari-tags'][tag] = db['akari-tags'][tag] + 1
+        else:
+            db['akari-tags'][tag] = 1
 
 def parse_result(result):
     soup = BeautifulSoup(result.text, 'html.parser')
@@ -58,6 +65,7 @@ def scan_diretory(dirname, db):
             result = query_iqdb(image)
             tags = parse_result(result)
             db[image] = tags
+            update_tags(tags, db)
             with open(data_dir+'/db.json', 'w') as outfile:
                 json.dump(db, outfile)
             print(tags)
@@ -65,7 +73,9 @@ def scan_diretory(dirname, db):
 
 def loadDB():
     db = {}
+    db['akari-tags'] = {}
     misplaced_files = []
+    tags_to_remove = []
     db_location = data_dir + '/db.json'
 
     if not os.path.exists(data_dir):
@@ -76,11 +86,20 @@ def loadDB():
             db = json.load(json_db)
 
     for key in db:
+        if key == 'akari-tags':
+            continue
         if not os.path.isfile(key):
             misplaced_files.append(key)
     for file in misplaced_files:
+        for tag in db[file]:
+            db['akari-tags'][tag] = db['akari-tags'][tag] - 1
+            if db['akari-tags'][tag] == 0:
+                tags_to_remove.append(tag)
         db.pop(file, None)
         print('{} misplaced'.format(file))
+    for tag in tags_to_remove:
+        db['akari-tags'].pop(tag, None)
+        print('{} tag removed'.format(tag))
 
     return db
 
