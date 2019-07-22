@@ -2,7 +2,8 @@
 <p align="center">Tag your anime photos effortlessly</p>
 
 <p align="center">
-<a href="./LICENSE.md"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+<a href="https://github.com/mananapr/akari/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+<a href="https://github.com/mananapr/akari/releases"><img src="https://img.shields.io/github/release/mananapr/akari/all.svg"></a>
 <a href="https://pypi.python.org/pypi/akari/"><img src="https://img.shields.io/pypi/v/akari.svg"></a>
 </p>
 akari is a work in progress python program to manage anime artwork. currently it uses [iqdb](https://iqdb.org) to reverse-search images and fetch appropriate tags.
