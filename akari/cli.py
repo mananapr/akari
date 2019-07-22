@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import sys
-from gui import init_gui
-from __init__ import __version__
-from utils import handle_flags, loadDB, scan_diretory
+from akari.gui import init_gui
+from akari.__init__ import __version__
+from akari.utils import handle_flags, loadDB, scan_diretory
 
 def main():
     dirname = handle_flags()

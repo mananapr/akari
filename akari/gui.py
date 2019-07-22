@@ -1,5 +1,5 @@
 import sys
-from utils import loadDB
+from akari.utils import loadDB
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QListWidget, QListWidgetItem, QListView, QHBoxLayout, QVBoxLayout

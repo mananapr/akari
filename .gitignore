@@ -1,2 +1,5 @@
 __pycache__
 akari/__pycache__
+akari.egg-info/
+build/
+dist/
