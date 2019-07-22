@@ -88,9 +88,12 @@ def handle_flags():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s','--scan',metavar='/path/to/dir',help='Scan directory for new images',default=None)
     parser.add_argument('-g','--gui',help='Start the GUI',action='store_true')
+    parser.add_argument('-v','--version',help='Displays the version',action='store_true')
     args = parser.parse_args()
     dirname = args.scan
 
+    if args.version == True:
+        return -2
     if args.gui == True:
         return -1
     if dirname is None:
