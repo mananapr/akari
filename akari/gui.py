@@ -8,7 +8,7 @@ class Main(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('akari')
-        self.setWindowIcon(QIcon('static/icon.png'))
+        self.setWindowIcon(QIcon('static/icon.jpg'))
 
         self.mainLayout = QHBoxLayout()
 
