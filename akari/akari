@@ -7,14 +7,13 @@ from utils import handle_flags, loadDB, scan_diretory
 
 def main():
     dirname = handle_flags()
-    db = loadDB()
     if dirname == -2:
         print("akari version {}".format(__version__))
         sys.exit(0)
     if dirname == -1:
-        print("GUI has not been implemented yet")
         init_gui()
     else:
+        db = loadDB()
         scan_diretory(dirname, db)
         sys.exit(0)
 
