@@ -13,5 +13,7 @@ akari is a work in progress python program to manage anime artwork. currently it
       -s /path/to/dir, --scan /path/to/dir
                             Scan directory for new images
       -g, --gui             Start the GUI
+      -v, --version         Displays the version
+
 
 [TODO](https://github.com/mananapr/akari/issues/1)
