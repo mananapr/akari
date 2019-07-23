@@ -14,9 +14,9 @@ akari is a work in progress python program to manage anime artwork. currently it
 </p>
 
 ## Requirements
-- requests
-- BeautifulSoup 4
-- PyQt5
+ - requests
+ - BeautifulSoup 4
+ - PyQt5
 
 ## Installation
 For user installation, simply run:
@@ -41,6 +41,5 @@ Alternatively, you can do a system wide installation:
                             Scan directory for new images
       -g, --gui             Start the GUI
       -v, --version         Displays the version
-
 
 [TODO](https://github.com/mananapr/akari/issues/1)

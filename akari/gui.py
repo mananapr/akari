@@ -37,7 +37,7 @@ class Main(QWidget):
         self.sidePanel.addWidget(self.clearFilerButton, 1)
         self.tagList.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        self.imageList.setViewMode(QListView.IconMode) 
+        self.imageList.setViewMode(QListView.IconMode)
         self.imageList.setIconSize(QSize(300,300))
         self.imageList.installEventFilter(self)
 
