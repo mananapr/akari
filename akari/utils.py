@@ -23,6 +23,10 @@ def update_tags(tags, db):
         else:
             db['akari-tags'][tag] = 1
 
+def commit_changes(db):
+    with open(data_dir+'/db.json', 'w') as outfile:
+        json.dump(db, outfile)
+
 def parse_result(result):
     soup = BeautifulSoup(result.text, 'html.parser')
     try:
@@ -68,8 +72,7 @@ def scan_diretory(dirname, db):
             tags = parse_result(result)
             db[image] = tags
             update_tags(tags, db)
-            with open(data_dir+'/db.json', 'w') as outfile:
-                json.dump(db, outfile)
+            commit_changes(db)
             print(tags)
         print("-----x--x-----")
 
@@ -102,6 +105,8 @@ def loadDB():
     for tag in tags_to_remove:
         db['akari-tags'].pop(tag, None)
         print('{} tag removed'.format(tag))
+
+    commit_changes(db)
 
     return db
 
