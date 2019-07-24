@@ -7,9 +7,11 @@
 <a href="https://pypi.python.org/pypi/akari/"><img src="https://img.shields.io/pypi/v/akari.svg"></a>
 </p>
 
-<img src="https://i.imgur.com/0bwiG7Y.png" alt="img" align="right" width="200px">
-<img src="https://i.imgur.com/y0UjpyO.png" alt="img" align="right" width="200px">
+<img src="https://i.imgur.com/0bwiG7Y.png" alt="img" align="right" width="400px">
+
 akari is a work in progress python program to manage anime artwork. currently it uses [iqdb](https://iqdb.org) to reverse-search images and fetch appropriate tags.
+
+<img src="https://i.imgur.com/y0UjpyO.png" alt="img" align="center" width="600px">
 
 ## Requirements
  - requests
