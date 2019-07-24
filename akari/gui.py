@@ -1,8 +1,8 @@
 import sys
 from akari.utils import loadDB, commit_changes
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QColor, QFont, QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QListWidget, QListWidgetItem, QListView, QHBoxLayout, QVBoxLayout, QAbstractItemView, QMenu, QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QListWidget, QListWidgetItem, QListView, QHBoxLayout, QVBoxLayout, QAbstractItemView, QMenu, QInputDialog, QLineEdit, QMainWindow, QLabel, QDesktopWidget, QSplitter
 
 class Main(QWidget):
     def __init__(self):
@@ -11,23 +11,32 @@ class Main(QWidget):
         self.setWindowIcon(QIcon('static/icon.jpg'))
         self.db = None
 
+        self.imageViewer = imageViewer()
+
         self.mainLayout = QHBoxLayout()
+
+        self.splitter = QSplitter(Qt.Horizontal)
+        self.leftSplitterWidget = QWidget()
+        self.rightSplitterWidget = QWidget()
+        self.splitter.addWidget(self.rightSplitterWidget)
+        self.splitter.addWidget(self.leftSplitterWidget)
 
         self.sidePanel = QVBoxLayout()
         self.tagList = QListWidget()
         self.filerButton = QPushButton("Filter")
         self.clearFilerButton = QPushButton("Reset")
         self.sidePanel.addWidget(self.tagList)
+        self.rightSplitterWidget.setLayout(self.sidePanel)
 
         self.imagePanel = QVBoxLayout()
         self.imageList = QListWidget()
         self.imagePanelOptions = QHBoxLayout()
-        self.miscButton1 = QPushButton("Misc Option 1")
-        self.miscButton2 = QPushButton("Misc Option 2")
+        self.fsToggle = QPushButton("View Images in FullScreen")
+        self.quitButton = QPushButton("Quit")
         self.imagePanel.addWidget(self.imageList)
+        self.leftSplitterWidget.setLayout(self.imagePanel)
 
-        self.mainLayout.addLayout(self.sidePanel)
-        self.mainLayout.addLayout(self.imagePanel)
+        self.mainLayout.addWidget(self.splitter)
         self.setLayout(self.mainLayout)
 
         self.initUI()
@@ -42,8 +51,8 @@ class Main(QWidget):
         self.imageList.installEventFilter(self)
 
         self.imagePanel.addLayout(self.imagePanelOptions)
-        self.imagePanelOptions.addWidget(self.miscButton1)
-        self.imagePanelOptions.addWidget(self.miscButton2)
+        self.imagePanelOptions.addWidget(self.fsToggle)
+        self.imagePanelOptions.addWidget(self.quitButton)
 
         self.addEventHandlers()
         self.show()
@@ -54,10 +63,12 @@ class Main(QWidget):
     def addEventHandlers(self):
         self.filerButton.clicked.connect(self.filterButton_pressed)
         self.clearFilerButton.clicked.connect(self.clearFilterButton_pressed)
+        self.fsToggle.clicked.connect(self.fsToggle_pressed)
+        self.quitButton.clicked.connect(self.close)
 
     def addTagEditingButtons(self):
         self.addTagsButton = QPushButton("Add New Tag")
-        self.removeTagsButton = QPushButton("Remove Tags")
+        self.removeTagsButton = QPushButton("Remove Selected Tags")
         self.sidePanel.addWidget(self.addTagsButton)
         self.sidePanel.addWidget(self.removeTagsButton)
         self.addTagsButton.clicked.connect(self.addTagsButton_pressed)
@@ -76,6 +87,15 @@ class Main(QWidget):
         self.tagList.clear()
         for tag in self.db[image]:
             self.tagList.addItem(tag)
+
+    def fsToggle_pressed(self):
+        self.imageViewer.set_imageNumber(0)
+        imageViewer_list = []
+        for x in range(self.imageList.count()):
+            imageViewer_list.append(self.imageList.item(x).data(0))
+        self.imageViewer.set_imageViewerList(imageViewer_list)
+        self.imageViewer.addImage(imageViewer_list[0])
+        self.imageViewer.showFullScreen()
 
     def addTagsButton_pressed(self):
         image = self.imageList.item(0).data(0)
@@ -168,6 +188,45 @@ class Main(QWidget):
         for tag in sorted(self.db['akari-tags'], key=self.db['akari-tags'].get, reverse=True):
             tagList.append(str(self.db['akari-tags'][tag]) + ' ' + tag)
         self.tagList.addItems(tagList)
+
+class imageViewer(QLabel):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Image Viewer")
+        self.imageViewer_list = []
+        self.imageNumber = None
+
+    def set_imageViewerList(self, imgList):
+        self.imageViewer_list = imgList
+
+    def set_imageNumber(self, imageNumber):
+        self.imageNumber = imageNumber
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == Qt.Key_Right:
+            try:
+                self.addImage(self.imageViewer_list[self.imageNumber+1])
+                self.imageNumber = self.imageNumber + 1
+            except:
+                self.imageNumber = 0
+                self.addImage(self.imageViewer_list[self.imageNumber])
+        elif key == Qt.Key_Left:
+            try:
+                self.addImage(self.imageViewer_list[self.imageNumber-1])
+                self.imageNumber = self.imageNumber - 1
+            except:
+                self.imageNumber = len(self.imageViewer_list)-1
+                self.addImage(self.imageViewer_list[self.imageNumber])
+        elif key == Qt.Key_Q:
+            self.hide()
+
+    def addImage(self, image):
+        pixmap = QPixmap(image)
+        self.screenSize = QDesktopWidget().screenGeometry(0)
+        self.setPixmap(pixmap.scaled(self.screenSize.width(), self.screenSize.height(), Qt.KeepAspectRatio))
+        self.setAlignment(Qt.AlignCenter)
+        self.setStyleSheet("QLabel { background-color : black; }")
 
 def init_gui():
     db = loadDB()
