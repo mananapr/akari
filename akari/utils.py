@@ -49,7 +49,7 @@ def parse_result(result):
             tag_string = alt_string[tag_string_index+6:]
             tag_string = tag_string.lower()
             tag_string_formatted  = ''.join(c for c in tag_string if c not in ',')
-            tags = tag_string_formatted.split(" ")
+            tags = list(set(tag_string_formatted.split(" ")))
     return tags
 
 def scan_diretory(dirname, db):
