@@ -10,7 +10,7 @@
 akari is a work in progress python program to manage anime artwork. currently it uses [iqdb](https://iqdb.org) to reverse-search images and fetch appropriate tags.
 
 <p align="center">
-<img src="https://i.imgur.com/AIYw9aL.png" alt="img" width="600px">
+<img src="https://i.imgur.com/i4OH7aI.png" alt="img" width="600px">
 </p>
 
 ## Requirements
