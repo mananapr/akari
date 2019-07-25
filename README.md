@@ -7,7 +7,11 @@
 <a href="https://pypi.python.org/pypi/akari/"><img src="https://img.shields.io/pypi/v/akari.svg"></a>
 </p>
 
-akari is a work in progress python program to manage anime artwork. currently it uses [iqdb](https://iqdb.org) to reverse-search images and fetch appropriate tags.
+`akari` is a work in progress python program to manage anime artwork
+ - It uses [iqdb](https://iqdb.org) to reverse-search images and tag your images automatically
+ - You can do add new tags or remove tags manually
+ - You can select some tags and filter your images accordingly
+ - Has a built in image viewer for fullscreen viewing
 
 <p align="center">
 <img src="https://i.imgur.com/i4OH7aI.png" alt="img" width="600px">
