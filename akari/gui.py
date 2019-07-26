@@ -4,23 +4,33 @@ from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QColor, QFont, QPixmap
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QListWidget, QListWidgetItem, QListView, QHBoxLayout, QVBoxLayout, QAbstractItemView, QMenu, QInputDialog, QLineEdit, QMainWindow, QLabel, QDesktopWidget, QSplitter
 
+
+"""
+    Class for the main application window
+"""
 class Main(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('akari')
         self.setWindowIcon(QIcon('static/icon.jpg'))
+
+        # Stores the db dictionary
         self.db = None
+        # Is set to 1 when metadata view of a single photo needs to be shown
+        self.viewMetadata_flag = 0
+        # The full screen Image Viewer window
+        self.imageViewer = imageViewer() 
 
-        self.imageViewer = imageViewer()
-
+        # The main layout
         self.mainLayout = QHBoxLayout()
-
+        # Add spliter to enable dyanmic resizing of taglist and imagelist
         self.splitter = QSplitter(Qt.Horizontal)
         self.leftSplitterWidget = QWidget()
         self.rightSplitterWidget = QWidget()
         self.splitter.addWidget(self.rightSplitterWidget)
         self.splitter.addWidget(self.leftSplitterWidget)
-
+        
+        # Initialize elements for the taglist panel
         self.sidePanel = QVBoxLayout()
         self.tagList = QListWidget()
         self.filerButton = QPushButton("Filter")
@@ -28,6 +38,7 @@ class Main(QWidget):
         self.sidePanel.addWidget(self.tagList)
         self.rightSplitterWidget.setLayout(self.sidePanel)
 
+        # Initialize elements for the imagelist panel
         self.imagePanel = QVBoxLayout()
         self.imageList = QListWidget()
         self.imagePanelOptions = QHBoxLayout()
@@ -36,11 +47,16 @@ class Main(QWidget):
         self.imagePanel.addWidget(self.imageList)
         self.leftSplitterWidget.setLayout(self.imagePanel)
 
+        # Add the splitter to the main layout
         self.mainLayout.addWidget(self.splitter)
         self.setLayout(self.mainLayout)
 
         self.initUI()
 
+    """
+        Adds button widgets to their respective panels
+        Sets settings (like icon size) for image list
+    """
     def initUI(self):
         self.sidePanel.addWidget(self.filerButton, 1)
         self.sidePanel.addWidget(self.clearFilerButton, 1)
@@ -60,12 +76,20 @@ class Main(QWidget):
     def updateDB(self, db):
         self.db = db
 
+    """
+        Adds event handlers for various buttons
+    """
     def addEventHandlers(self):
         self.filerButton.clicked.connect(self.filterButton_pressed)
         self.clearFilerButton.clicked.connect(self.clearFilterButton_pressed)
         self.fsToggle.clicked.connect(self.fsToggle_pressed)
         self.quitButton.clicked.connect(self.close)
+        self.imageList.itemDoubleClicked.connect(self.viewMetadata)
 
+    """
+        Adds the buttons necessary to allow users to add new tags and remove tags
+        These are only shown if `viewMetadata_flag` is set to 1
+    """
     def addTagEditingButtons(self):
         self.addTagsButton = QPushButton("Add New Tag")
         self.removeTagsButton = QPushButton("Remove Selected Tags")
@@ -74,8 +98,12 @@ class Main(QWidget):
         self.addTagsButton.clicked.connect(self.addTagsButton_pressed)
         self.removeTagsButton.clicked.connect(self.removeTagsButton_pressed)
 
+    """
+        Removes the buttons necessary to allow users to add new tags and remove tags
+    """
     def removeTagEditingButtons(self):
         try:
+            self.viewMetadata_flag = 0
             self.sidePanel.removeWidget(self.addTagsButton)
             self.addTagsButton.deleteLater()
             self.sidePanel.removeWidget(self.removeTagsButton)
@@ -83,20 +111,31 @@ class Main(QWidget):
         except:
             pass
 
+    """
+        Refreshes the taglist for a given image
+        Called when user adds or removes some tags from an image
+    """
     def refreshTagListForImage(self, image):
         self.tagList.clear()
         for tag in self.db[image]:
             self.tagList.addItem(tag)
 
+    """
+        This function is called when user presses the "View Imagesin FullScreen" button
+    """
     def fsToggle_pressed(self):
         self.imageViewer.set_imageNumber(0)
         imageViewer_list = []
         for x in range(self.imageList.count()):
             imageViewer_list.append(self.imageList.item(x).data(0))
-        self.imageViewer.set_imageViewerList(imageViewer_list)
-        self.imageViewer.addImage(imageViewer_list[0])
-        self.imageViewer.showFullScreen()
+        if len(imageViewer_list) > 0:
+            self.imageViewer.set_imageViewerList(imageViewer_list)
+            self.imageViewer.addImage(imageViewer_list[0])
+            self.imageViewer.showFullScreen()
 
+    """
+        This function is called when user presses the "Add Tags" button in the metadata view
+    """
     def addTagsButton_pressed(self):
         image = self.imageList.item(0).data(0)
         tag, okPressed = QInputDialog.getText(self, "Enter Tag","Enter Tag", QLineEdit.Normal, "")
@@ -111,6 +150,9 @@ class Main(QWidget):
         self.db = loadDB()
         self.refreshTagListForImage(image)
 
+    """
+        This function is called when user presses the "Remove Selected Tags" button in the metadata view
+    """
     def removeTagsButton_pressed(self):
         tags_to_remove = self.tagList.selectedItems()
         image = self.imageList.item(0).data(0)
@@ -124,6 +166,9 @@ class Main(QWidget):
         self.db = loadDB()
         self.refreshTagListForImage(image)
 
+    """
+        This function is called when user presses the "Filter" button
+    """
     def filterButton_pressed(self):
         selected_items = self.tagList.selectedItems()
         selected_tags = []
@@ -139,20 +184,31 @@ class Main(QWidget):
         self.addImages(filtered_images)
         self.removeTagEditingButtons()
 
+    """
+        This function is called when user presses the "Reset" button
+    """
     def clearFilterButton_pressed(self):
         imgList = self.getImgList()
         self.addImages(imgList)
         self.addTags()
         self.removeTagEditingButtons()
 
+    """
+        This function is called when user selects the "View Metadata" Option in the context menu
+    """
     def viewMetadata(self):
-        selected_image = self.imageList.selectedItems()[0].data(0)
-        tags = self.db[selected_image]
-        self.tagList.clear()
-        self.tagList.addItems(tags)
-        self.addImages([selected_image])
-        self.addTagEditingButtons()
+        if self.viewMetadata_flag == 0:
+            self.viewMetadata_flag = 1
+            selected_image = self.imageList.selectedItems()[0].data(0)
+            tags = self.db[selected_image]
+            self.tagList.clear()
+            self.tagList.addItems(tags)
+            self.addImages([selected_image])
+            self.addTagEditingButtons()
 
+    """
+        Override funtion to add "View Metadata" option in the context menu
+    """
     def contextMenuEvent(self, event):
         menu = QMenu(self)
         if self.imageList.selectedItems() != []:
@@ -161,6 +217,9 @@ class Main(QWidget):
             if action == viewMetadata:
                 self.viewMetadata()
 
+    """
+        Returns a list of images from the db dictionary
+    """
     def getImgList(self):
         imgList = []
         for imgPath in self.db:
@@ -169,6 +228,9 @@ class Main(QWidget):
             imgList.append(imgPath)
         return imgList
 
+    """
+        Clears all the images in the image panel and adds images from `imgList`
+    """
     def addImages(self, imgList):
         self.imageList.clear()
         for imgPath in imgList:
@@ -182,6 +244,9 @@ class Main(QWidget):
             item.setIcon(icon)
             self.imageList.addItem(item)
 
+    """
+        Clears all the tags in the tag panel and adds all the tags along with their count from the db dictionary
+    """
     def addTags(self):
         self.tagList.clear()
         tagList = []
@@ -189,11 +254,17 @@ class Main(QWidget):
             tagList.append(str(self.db['akari-tags'][tag]) + ' ' + tag)
         self.tagList.addItems(tagList)
 
+
+"""
+    Class for the fullscreen image viewer window
+"""
 class imageViewer(QLabel):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Image Viewer")
+        # List of images to be shown in fullscreen
         self.imageViewer_list = []
+        # Index of the current image in the imageViewer_list
         self.imageNumber = None
 
     def set_imageViewerList(self, imgList):
@@ -202,6 +273,12 @@ class imageViewer(QLabel):
     def set_imageNumber(self, imageNumber):
         self.imageNumber = imageNumber
 
+    """
+        Override funtion to add keybindings for image navigation
+        Right arrow key for next image
+        Left arrow key for previous image
+        q to exit
+    """
     def keyPressEvent(self, event):
         key = event.key()
         if key == Qt.Key_Right:
@@ -221,6 +298,9 @@ class imageViewer(QLabel):
         elif key == Qt.Key_Q:
             self.hide()
 
+    """
+        Sets `image` as the current image in the fullscreen view
+    """
     def addImage(self, image):
         pixmap = QPixmap(image)
         self.screenSize = QDesktopWidget().screenGeometry(0)
@@ -228,6 +308,10 @@ class imageViewer(QLabel):
         self.setAlignment(Qt.AlignCenter)
         self.setStyleSheet("QLabel { background-color : black; }")
 
+
+"""
+    Initializes the GUI
+"""
 def init_gui():
     db = loadDB()
     app = QApplication(sys.argv)

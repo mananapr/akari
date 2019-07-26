@@ -8,14 +8,22 @@ from shutil import copyfile
 from bs4 import BeautifulSoup
 
 image_extensions = ['.jpg','.jpeg','.png','.gif']
+
+# Directory for storing the database file
 data_dir = str(Path.home()) + '/.config/akari'
 
+"""
+    Submits the search form at https://iqdb.org
+"""
 def query_iqdb(filename):
     url = 'https://iqdb.org'
     files = {'file': (filename, open(filename, 'rb'))}
     res = requests.post(url,files=files)
     return res
 
+"""
+    Updates the tag count in the database
+"""
 def update_tags(tags, db):
     for tag in tags:
         if tag in db['akari-tags']:
@@ -23,17 +31,23 @@ def update_tags(tags, db):
         else:
             db['akari-tags'][tag] = 1
 
+"""
+    Writes the dictionary `db` to the database file
+"""
 def commit_changes(db):
     with open(data_dir+'/db.json', 'w') as outfile:
         json.dump(db, outfile)
 
+"""
+    Parses the response from `query_iqdb` function
+    Returns a list of tags
+"""
 def parse_result(result):
     soup = BeautifulSoup(result.text, 'html.parser')
     try:
         tables = soup.find_all('table')
         search_result = tables[1].findChildren("th")[0].get_text()
     except:
-        print('Unexpected Error')
         return ['server-error']
     tags = []
     if search_result == 'No relevant matches':
@@ -52,6 +66,11 @@ def parse_result(result):
             tags = list(set(tag_string_formatted.split(" ")))
     return tags
 
+"""
+    Scans `dirname` directory for images and adds their paths in db
+    Then adds tags for those images by calling `query_iqdb` and `parse_result`
+    Finally it updates the tags and writes the changes to the database file
+"""
 def scan_diretory(dirname, db):
     image_paths = []
     count = 1
@@ -76,6 +95,11 @@ def scan_diretory(dirname, db):
             print(tags)
         print("-----x--x-----")
 
+"""
+    Initialises the db dictionary.
+    Looks for the database file in the data directory and creates one if it doesn't exists
+    It looks for missing files in the database and then finally returns the updated db dictionary
+"""
 def loadDB():
     db = {}
     db['akari-tags'] = {}
@@ -107,9 +131,15 @@ def loadDB():
         print('{} tag removed'.format(tag))
 
     commit_changes(db)
-
     return db
 
+"""
+    Handles the command line arguments
+    Return -2 if --version is used
+    Return -1 if --gui is used
+    Returns the path of the directory if --scan is used and the directory is found to be valid
+    Exits otherwise
+"""
 def handle_flags():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s','--scan',metavar='/path/to/dir',help='Scan directory for new images',default=None)
