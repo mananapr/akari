@@ -6,6 +6,8 @@ import requests
 from pathlib import Path
 from shutil import copyfile
 from bs4 import BeautifulSoup
+from typing import NamedTuple
+from argparse import Namespace as argns
 
 image_extensions = ['.jpg','.jpeg','.png','.gif']
 
@@ -133,25 +135,48 @@ def loadDB():
     commit_changes(db)
     return db
 
+
+'''
+    Option is a class to collect and pass user's options
+
+    function parse(self,argument: argns) is used to parse args to Option
+'''
+
+
+class Option(NamedTuple):
+    rename: bool = False
+    version: bool = False
+    gui: bool = True
+
+    def parse(self, argument: argns):
+        if argument.rename is None:
+            print("Illegal parsing in Class Option")
+            sys.exit(2)
+        self.rename = argument.rename
+
+
 """
     Handles the command line arguments
     Return -2 if --version is used
     Return -1 if --gui is used
     Returns the path of the directory if --scan is used and the directory is found to be valid
     Exits otherwise
+    
+    Variable option is a class
 """
 def handle_flags():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s','--scan',metavar='/path/to/dir',help='Scan directory for new images',default=None)
     parser.add_argument('-g','--gui',help='Start the GUI',action='store_true')
     parser.add_argument('-v','--version',help='Displays the version',action='store_true')
+    parser.add_argument('-r','--rename',help='Rename the image if tags are detected',default=False)
     args = parser.parse_args()
     dirname = args.scan
 
     if args.version == True:
-        return -2
+        return Option(version=args.version), None
     if args.gui == True:
-        return -1
+        return Option(version=args.version, gui=args.gui), None
     if dirname is None:
         parser.print_help(sys.stderr)
         sys.exit(2)
@@ -159,5 +184,7 @@ def handle_flags():
         print("Invalid Path")
         parser.print_help(sys.stderr)
         sys.exit(2)
+    option = Option()
+    option.parse(args)
+    return option, dirname
 
-    return dirname
