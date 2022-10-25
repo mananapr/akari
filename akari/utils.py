@@ -21,6 +21,7 @@ class Option:
     rename: bool = False
     version: bool = False
     gui: bool = False
+    force: bool = False
 
     def __init__(self, argument: argns):
         if argument is None:
@@ -29,6 +30,7 @@ class Option:
         self.rename = argument.rename
         self.version = argument.version
         self.gui = argument.gui
+        self.force = argument.force
 
 
 image_extensions = ['.jpg', '.jpeg', '.png', '.gif']
@@ -101,6 +103,7 @@ def parse_result(result):
             tags = list(set(tag_string_formatted.split(" ")))
     return tags
 
+
 """
     Find the anime characters and return the list of them
     Suspect the character meet the pattern of r“(.*)_\(.*\)$”
@@ -139,7 +142,7 @@ def scan_diretory(dirname, db, options: Option):
         filename = os.path.basename(os.path.normpath(image))
         print("Processing Image {} of {}: {}".format(count, num_of_images, filename))
         count = count + 1
-        if image in db and db[image] != ['server-error']:
+        if options.force is False and image in db and db[image] != ['server-error']:
             print('Already exits in DB. Skipping...')
         else:
             result = query_iqdb(image)
@@ -156,7 +159,7 @@ def scan_diretory(dirname, db, options: Option):
                             if i == 0:
                                 new_name = os.path.join(new_name, char_list[i])
                             else:
-                                if len(new_name + '_' + char_list[i])>=256:
+                                if len(new_name + '_' + char_list[i]) >= 256:
                                     break
                                 new_name = new_name + '_' + char_list[i]
                     else:
@@ -164,7 +167,7 @@ def scan_diretory(dirname, db, options: Option):
                             if i == 0:
                                 new_name = os.path.join(new_name, tags[i])
                             else:
-                                if len(new_name + '_' + tags[i])>=256:
+                                if len(new_name + '_' + tags[i]) >= 256:
                                     break
                                 new_name = new_name + '_' + tags[i]
                     new_name_count = 1
@@ -245,6 +248,7 @@ def handle_flags():
     parser.add_argument('-g', '--gui', help='Start the GUI', action='store_true')
     parser.add_argument('-v', '--version', help='Displays the version', action='store_true')
     parser.add_argument('-r', '--rename', help='Rename the image if tags are detected', action="store_true")
+    parser.add_argument('-f', '--force', help='force akari to identify the image', action='store_true')
     args = parser.parse_args()
     dirname = args.scan
 
