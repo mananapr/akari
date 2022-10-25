@@ -147,7 +147,7 @@ def scan_diretory(dirname, db, options: Option):
 
             # TODO: Add Option for Users to choose renaming with character or non-character tags
             if options.rename:
-                if tags[0] != "undefined":
+                if tags[0] != "undefined" and tags[0] != "server-error":
                     _, extension_name = os.path.splitext(os.path.normpath(image))
                     new_name = os.path.dirname(os.path.normpath(image))
                     char_list = find_character_groups(tags)
