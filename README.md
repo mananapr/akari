@@ -35,7 +35,7 @@ Alternatively, you can do a system wide installation:
     sudo pip3 install akari
 
 ## Usage
-    usage: akari [-h] [-s /path/to/dir] [-g]
+    usage: akari [-h] [-s /path/to/dir] [-g] [-v] [-r] [-f]
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -43,5 +43,7 @@ Alternatively, you can do a system wide installation:
                             Scan directory for new images
       -g, --gui             Start the GUI
       -v, --version         Displays the version
+      -r, --rename          Rename the image if tags are detected
+      -f, --force           force akari to identify the image
 
 [TODO](https://github.com/mananapr/akari/issues/1)
