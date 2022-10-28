@@ -7,7 +7,7 @@ from pathlib import Path
 from shutil import copyfile
 from bs4 import BeautifulSoup
 from argparse import Namespace as argns
-import re
+from akari import danbooru_helper,db
 
 '''
     Option is a class to collect and pass user's options
@@ -21,7 +21,7 @@ class Option:
     version: bool = False
     gui: bool = False
     force: bool = False
-
+    proxy:dict = None
     def __init__(self, argument: argns):
         if argument is None:
             print("Illegal Parameters for Option Init")
@@ -30,12 +30,16 @@ class Option:
         self.version = argument.version
         self.gui = argument.gui
         self.force = argument.force
-
+        if argument.http_proxy is not None or argument.https_proxy is not None:
+            self.proxy["http"] = argument.http_proxy
+            self.proxy["https"] = argument.https_proxy
 
 image_extensions = ['.jpg', '.jpeg', '.png', '.gif']
 
 # Directory for storing the database file
 data_dir = str(Path.home()) + '/.config/akari'
+
+tag_db = db.tag_database()
 
 """
     Submits the search form at https://iqdb.org
@@ -105,20 +109,46 @@ def parse_result(result):
 
 """
     Find the anime characters and return the list of them
-    Suspect the character meet the pattern of r“(.*)_\(.*\)$”
- 
+    Using danbooru_helper to retrieve tag's category from Danbooru
+    and save it to the database
+    
+    :parameter
+        - tags: list : a list of tags
+        - proxy: proxy option for user's to set, formatted in 
+                proxies = {
+                    'http': '127.0.0.1:6666',
+                    'https': '127.0.0.1:6666',
+                }
+            default is None
+            
+    :return
+        - tag_with_category: a dict
+            - key: category_name: str
+            - value: a list of tags  
 """
 
 
-# TODO: Using Danbooru API to find out tag's category
-# https://danbooru.donmai.us/tags.json?search[name]=inui_toko
-def find_character_groups(tags):
-    char_regex = re.compile(r"(.*)_\(.*\)$")
-    if tags[0] == "undefined":
-        return None
-    return list(filter(char_regex.match, tags))
+def categorize_tags(tags,proxies=None):
+    tag_with_category = {
+        "general":[],
+        "artist":[],
+        "copyright":[],
+        "character":[],
+        "meta":[],
+    }
+    try:
+        for _,tag in enumerate(tags):
+            tag_category = danbooru_helper.search_tag_category(tag,proxy=proxies)
+            tag_with_category[tag_category].append(tag)
+            tag_db.add_tag(tag,tag_category)
 
-
+        return tag_with_category
+    except ValueError as val_err:
+        print(str(val_err))
+        sys.exit(2)
+    except NotImplementedError as err:
+        print(f"Sorry :( \n{str(err)}\n. Please give me the issue on the github.")
+        sys.exit(2)
 """
     Scans `dirname` directory for images and adds their paths in db
     Then adds tags for those images by calling `query_iqdb` and `parse_result`
@@ -152,7 +182,7 @@ def scan_diretory(dirname, db, options: Option):
                 if tags[0] != "undefined" and tags[0] != "server-error":
                     _, extension_name = os.path.splitext(os.path.normpath(image))
                     new_name = os.path.dirname(os.path.normpath(image))
-                    char_list = find_character_groups(tags)
+                    char_list = categorize_tags(tags,proxies=options.proxy)
                     if char_list is not None and len(char_list) > 0:
                         for i in range(len(char_list)):
                             if i == 0:
@@ -242,11 +272,13 @@ def loadDB():
 
 def handle_flags():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--scan', metavar='/path/to/dir', help='Scan directory for new images', default=None)
+    parser.add_argument('-s', '--scan', metavar='/path/to/dir',required=True ,help='Scan directory for new images', default=None)
     parser.add_argument('-g', '--gui', help='Start the GUI', action='store_true')
     parser.add_argument('-v', '--version', help='Displays the version', action='store_true')
     parser.add_argument('-r', '--rename', help='Rename the image if tags are detected', action="store_true")
     parser.add_argument('-f', '--force', help='force akari to identify the image', action='store_true')
+    parser.add_argument('--http_proxy',help='HTTP proxy for accessing website(Danbooru) (e.g.: 127.0.0.1:1234)', default=None)
+    parser.add_argument('--https_proxy',help='HTTPS proxy for accessing website(Danbooru) (e.g.: 127.0.0.1:1234)',default=None)
     args = parser.parse_args()
     dirname = args.scan
 
