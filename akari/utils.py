@@ -6,7 +6,6 @@ import requests
 from pathlib import Path
 from shutil import copyfile
 from bs4 import BeautifulSoup
-from typing import NamedTuple
 from argparse import Namespace as argns
 import re
 
@@ -233,12 +232,11 @@ def loadDB():
 
 """
     Handles the command line arguments
-    Return -2 if --version is used
-    Return -1 if --gui is used
-    Returns the path of the directory if --scan is used and the directory is found to be valid
+    :returns
+        option: Option : parse the command line option
+        dirname: str   : the absolute path to the working directory
     Exits otherwise
     
-    Variable option is a class
 """
 
 
