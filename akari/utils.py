@@ -21,7 +21,8 @@ class Option:
     version: bool = False
     gui: bool = False
     force: bool = False
-    proxy:dict = None
+    proxy:dict = {}
+
     def __init__(self, argument: argns):
         if argument is None:
             print("Illegal Parameters for Option Init")
@@ -30,9 +31,11 @@ class Option:
         self.version = argument.version
         self.gui = argument.gui
         self.force = argument.force
-        if argument.http_proxy is not None or argument.https_proxy is not None:
+        if argument.http_proxy != "" or argument.https_proxy !="":
             self.proxy["http"] = argument.http_proxy
             self.proxy["https"] = argument.https_proxy
+        else:
+            self.proxy = None
 
 image_extensions = ['.jpg', '.jpeg', '.png', '.gif']
 
@@ -153,6 +156,8 @@ def categorize_tags(tags,proxies=None):
     Scans `dirname` directory for images and adds their paths in db
     Then adds tags for those images by calling `query_iqdb` and `parse_result`
     Finally it updates the tags and writes the changes to the database file
+    
+    Use the format of "{char}+{general}(limit:4)"
 """
 
 
@@ -182,15 +187,22 @@ def scan_diretory(dirname, db, options: Option):
                 if tags[0] != "undefined" and tags[0] != "server-error":
                     _, extension_name = os.path.splitext(os.path.normpath(image))
                     new_name = os.path.dirname(os.path.normpath(image))
-                    char_list = categorize_tags(tags,proxies=options.proxy)
-                    if char_list is not None and len(char_list) > 0:
-                        for i in range(len(char_list)):
+                    tag_dict = categorize_tags(tags, proxies=options.proxy)
+                    if tag_dict is not None:
+                        for i,char_tag in enumerate(tag_dict["character"]):
                             if i == 0:
-                                new_name = os.path.join(new_name, char_list[i])
+                                new_name = os.path.join(new_name, char_tag)
+                                continue
+                            elif len(new_name + ';' + char_tag) >= 256:
+                                break
+                            new_name = new_name + ';' + char_tag
+                        for i,g_tag in enumerate(tag_dict["general"]): # g_tag aka general tag
+                            if len(new_name+';'+g_tag) >= 256 or i>5:
+                                break
+                            if i == 0:
+                                new_name = new_name + "+" + g_tag
                             else:
-                                if len(new_name + '_' + char_list[i]) >= 256:
-                                    break
-                                new_name = new_name + '_' + char_list[i]
+                                new_name = new_name + ';' + g_tag
                     else:
                         for i in range(len(tags)):
                             if i == 0:
@@ -277,8 +289,8 @@ def handle_flags():
     parser.add_argument('-v', '--version', help='Displays the version', action='store_true')
     parser.add_argument('-r', '--rename', help='Rename the image if tags are detected', action="store_true")
     parser.add_argument('-f', '--force', help='force akari to identify the image', action='store_true')
-    parser.add_argument('--http_proxy',help='HTTP proxy for accessing website(Danbooru) (e.g.: 127.0.0.1:1234)', default=None)
-    parser.add_argument('--https_proxy',help='HTTPS proxy for accessing website(Danbooru) (e.g.: 127.0.0.1:1234)',default=None)
+    parser.add_argument('--http_proxy',help='HTTP proxy for accessing website(Danbooru) (e.g.: 127.0.0.1:1234)', default="")
+    parser.add_argument('--https_proxy',help='HTTPS proxy for accessing website(Danbooru) (e.g.: 127.0.0.1:1234)',default="")
     args = parser.parse_args()
     dirname = args.scan
 

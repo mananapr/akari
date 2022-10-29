@@ -59,7 +59,7 @@ class tag_database():
     def add_tag(self, tag_name: str, category: str):
         try:
             self.db.execute('''
-                INSERT INTO tag(`name`,`category`)
+                INSERT OR IGNORE INTO tag(`name`,`category`)
                 VALUES (?, ?);
             ''', [tag_name, category])
             self.conn.commit()
