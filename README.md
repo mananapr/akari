@@ -46,4 +46,34 @@ Alternatively, you can do a system wide installation:
       -r, --rename          Rename the image if tags are detected
       -f, --force           force akari to identify the image
 
+## Configuration
+The configuration file is in 
+- Linux/Mac:`$HOME/.config/akari/config.conf`
+- Windows:`C:\Users\${Username}\.config\akari`
+  - change ``${Username}`` to your PC's username
+
+Including the following part:
+
+### Common
+Common part is under the title of ``[Common]``
+
+| Key                 | Value                                     | Default              |
+|---------------------|-------------------------------------------|----------------------|
+| `http_proxy`        | your http proxy server's url              | `none`               |
+| `https_proxy`       | your https proxy server's url             | `none`               |
+| `format`            | rename format,only active when using `-r` | `${char}+${general}` |
+| `general_num_limit` | the limit of amount of tag `general`      | `5`                  |
+
+
+## Format Placeholder
+
+| Placeholder    | Detail                        | Example          |
+|----------------|-------------------------------|------------------|
+| `${character}` | Placeholder for Character tag | `inui_toko`      |
+| `${general}`   | Placeholder for General tag   | `1girl`          |
+| `${artist}`    | Placeholder for Artist tag    | `mizuki_hitoshi` |
+| `${copyright}` | Placeholder for Copyright tag | `touhou`         |
+| `${meta}`      | Placeholder for Meta tag      | `translated`     |
+
+
 [TODO](https://github.com/mananapr/akari/issues/1)
