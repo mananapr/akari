@@ -3,7 +3,7 @@
 import sys
 from akari.gui import init_gui
 from akari.__init__ import __version__
-from akari.utils import handle_flags, loadDB, scan_diretory, Option
+from akari.utils import handle_flags, loadDB, scan_directory, Option
 
 def main():
     # handle_flags() returns -2 if -v flag is passed
@@ -17,7 +17,7 @@ def main():
     # handle_flags() returns path to directory otherwise
     else:
         db = loadDB()
-        scan_diretory(dirname, db, options)
+        scan_directory(dirname, db, options)
         sys.exit(0)
 
 if __name__ == '__main__':
